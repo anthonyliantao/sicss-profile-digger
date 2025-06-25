@@ -2,9 +2,14 @@ from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import requests
+import re
 import os
 import csv
 from pathlib import Path
+
+def sanitize_filename(name: str) -> str:
+    # 替换非字母数字为下划线
+    return re.sub(r"[^\w\-]+", "_", name).strip("_")
 
 # 创建目录
 def ensure_dir(path: str | Path):
@@ -39,8 +44,8 @@ def parse_profile_block(block, base_url: str, save_photo: bool, image_dir: str |
     photo_path = None
 
     if photo_url and save_photo:
-        filename = os.path.basename(photo_url)
-        photo_path = os.path.join(image_dir, filename)
+        safe_name = sanitize_filename(name)
+        photo_path = os.path.join(image_dir, f"{safe_name}.jpg")
         try:
             r = requests.get(photo_url, timeout=10)
             r.raise_for_status()
@@ -96,7 +101,7 @@ def scrape_profiles(
     image_dir: str | Path = "data/raw/images",
     output_file: str | Path = "data/raw/profiles.csv",
     headless: bool = True,
-    save_photo: bool = False
+    save_photo: bool = True
 ) -> list[dict]:
     if save_photo:
         ensure_dir(image_dir)
