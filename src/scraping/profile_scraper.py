@@ -59,22 +59,37 @@ def parse_profile_block(block, base_url: str, save_photo: bool, image_dir: str |
 # 解析整个页面中的 profile 块
 def parse_profiles(html: str, base_url: str, save_photo: bool, image_dir: str | Path) -> list[dict]:
     soup = BeautifulSoup(html, "html.parser")
-    people_blocks = soup.select("div.media.mb-5")
-    return [
-        parse_profile_block(block, base_url, save_photo, image_dir)
-        for block in people_blocks
-    ]
+    all_profiles = []
+
+    # 找出所有 h3.title（如 Faculty、Speakers 等）作为 role 起点
+    for h3 in soup.select("h3.h3.mb-4"):
+        role = h3.get_text(strip=True)
+
+        # 收集该 h3 到下一个 h3 之间的所有 profile 块
+        profile_blocks = []
+        for sibling in h3.find_next_siblings():
+            if sibling.name == "h3" and "mb-4" in sibling.get("class", []):
+                break  # 遇到下一个 role 区块，结束当前收集
+            if sibling.name == "div" and "media" in sibling.get("class", []) and "mb-5" in sibling.get("class", []):
+                profile_blocks.append(sibling)
+
+        # 解析每一个块并加入 role 字段
+        for block in profile_blocks:
+            profile = parse_profile_block(block, base_url, save_photo, image_dir)
+            profile["role"] = role
+            all_profiles.append(profile)
+
+    return all_profiles
 
 # 保存为 CSV
 def save_to_csv(data: list[dict], output_file: str | Path):
-
     ensure_dir(Path(output_file).parent)
     with open(output_file, "w", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["name", "bio", "photo_path"])
+        writer = csv.DictWriter(f, fieldnames=["name", "bio", "photo_path", "role"])
         writer.writeheader()
         writer.writerows(data)
     print(f"[✅] CSV saved to {output_file}")
-
+    
 # 主调度函数
 def scrape_profiles(
     url: str,
