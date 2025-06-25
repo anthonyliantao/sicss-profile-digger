@@ -65,8 +65,18 @@ def parse_profile_block(block, base_url: str, save_photo: bool, image_dir: str |
 def parse_profiles(html: str, base_url: str, save_photo: bool, image_dir: str | Path) -> list[dict]:
     soup = BeautifulSoup(html, "html.parser")
     all_profiles = []
+    
+    # 🔍 提取日期与地点（只提取第一个匹配）
+    info_tag = soup.select_one("p.h4.text-light")
+    date, location = None, None
+    if info_tag:
+        text = info_tag.get_text(strip=True)
+        if "|" in text:
+            date, location = map(str.strip, text.split("|", maxsplit=1))
+        else:
+            date = text  # fallback 情况    
 
-    # 找出所有 h3.title（如 Faculty、Speakers 等）作为 role 起点
+    # 遍历每个 role 块
     for h3 in soup.select("h3.h3.mb-4"):
         role = h3.get_text(strip=True)
 
@@ -82,6 +92,8 @@ def parse_profiles(html: str, base_url: str, save_photo: bool, image_dir: str | 
         for block in profile_blocks:
             profile = parse_profile_block(block, base_url, save_photo, image_dir)
             profile["role"] = role
+            profile["date"] = date
+            profile["location"] = location
             all_profiles.append(profile)
 
     return all_profiles
@@ -90,7 +102,7 @@ def parse_profiles(html: str, base_url: str, save_photo: bool, image_dir: str | 
 def save_to_csv(data: list[dict], output_file: str | Path):
     ensure_dir(Path(output_file).parent)
     with open(output_file, "w", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["name", "bio", "photo_path", "role"])
+        writer = csv.DictWriter(f, fieldnames=["name", "bio", "photo_path", "role", "date", "location"])
         writer.writeheader()
         writer.writerows(data)
     print(f"[✅] CSV saved to {output_file}")
