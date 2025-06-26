@@ -1,0 +1,22 @@
+[project]
+name = "sicss-profile-digger"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "Antao Li", email = "37994491+anthonyliantao@users.noreply.github.com"},
+]
+dependencies = [
+  "playwright>=1.44",
+  "beautifulsoup4>=4.12",
+  "requests>=2.31"
+]
+requires-python = "==3.11.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm]
+distribution = false
+
+[tool.pdm.scripts]
+scrape = "python main.py"
