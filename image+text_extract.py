@@ -115,10 +115,10 @@ def process_profiles():
             df["cleaned"] = df["structured_info"].apply(clean_and_parse_json_strict)
 
            df["Institution"] = df["cleaned"].apply(lambda x: standardize_list_field(x.get('institution', None)))
-           df["Identity"] = df["cleaned"].apply(lambda x: standardize_list_field(x.get('identity', None)))
-           df["Discipline"] = df["cleaned"].apply(lambda x: standardize_list_field(x.get('discipline', None)))
-           df["Research_interests"] = df["cleaned"].apply(lambda x: standardize_list_field(x.get('research_interests', None)))
-           df["Publication"] = df["cleaned"].apply(lambda x: standardize_list_field(x.get('publications', None)))
+    df["Identity"] = df["cleaned"].apply(lambda x: standardize_list_field(x.get('identity', None)))
+    df["Discipline"] = df["cleaned"].apply(lambda x: standardize_list_field(x.get('discipline', None)))
+    df["Research_interests"] = df["cleaned"].apply(lambda x: standardize_list_field(x.get('research_interests', None)))
+    df["Publication"] = df["cleaned"].apply(lambda x: standardize_list_field(x.get('publications', None)))
 
             output_name = os.path.splitext(file)[0] + "_structured.csv"
             df.to_csv(os.path.join(outpath, output_name), index=False)
