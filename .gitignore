@@ -194,4 +194,4 @@ cython_debug/
 .cursorindexingignore
 
 # 不上传原始数据 避免隐私纠纷
-data/raw
+data/raw/
