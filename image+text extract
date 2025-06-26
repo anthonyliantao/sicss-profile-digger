@@ -90,6 +90,17 @@ def clean_and_parse_json_strict(text):
         print(f"❌ Error parsing JSON: {e}")
         return {}
 
+def standardize_list_field(x):
+    if isinstance(x, str):
+        if ',' in x or ';' in x:
+            return [d.strip() for d in re.split(r'[;,]', x)]
+        else:
+            return [x.strip()] 
+    elif isinstance(x, list):
+        return [str(i).strip() for i in x] 
+    else:
+        return None
+
 # ----------- 主批量处理逻辑：对每个 CSV 文件做结构抽取 -----------
 def process_profiles():
     nlp = spacy.load("en_core_web_sm")
@@ -103,11 +114,11 @@ def process_profiles():
             df["structured_info"] = df["bio"].progress_apply(extract_fields_from_bio)
             df["cleaned"] = df["structured_info"].apply(clean_and_parse_json_strict)
 
-            df["Institution"] = df["cleaned"].apply(lambda x: x.get('institution', None))
-            df["Identity"] = df["cleaned"].apply(lambda x: x.get('identity', None))
-            df["Discipline"] = df["cleaned"].apply(lambda x: x.get('discipline', None))
-            df["Research_interests"] = df["cleaned"].apply(lambda x: x.get('research_interests', None))
-            df["Publication"] = df["cleaned"].apply(lambda x: x.get('publications', None))
+           df["Institution"] = df["cleaned"].apply(lambda x: standardize_list_field(x.get('institution', None)))
+           df["Identity"] = df["cleaned"].apply(lambda x: standardize_list_field(x.get('identity', None)))
+           df["Discipline"] = df["cleaned"].apply(lambda x: standardize_list_field(x.get('discipline', None)))
+           df["Research_interests"] = df["cleaned"].apply(lambda x: standardize_list_field(x.get('research_interests', None)))
+           df["Publication"] = df["cleaned"].apply(lambda x: standardize_list_field(x.get('publications', None)))
 
             output_name = os.path.splitext(file)[0] + "_structured.csv"
             df.to_csv(os.path.join(outpath, output_name), index=False)
