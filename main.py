@@ -9,13 +9,16 @@ home_url = 'https://sicss.io/locations'
 
 location_urls = get_all_location_urls(home_url=home_url, headless=False)
 for url in location_urls:
-    slug = extract_slug_from_url(url)
-    output_file = Path(f"data/raw/profiles_{slug}.csv")
-    img_dir = Path(f"data/raw/images/{slug}")
-    result = scrape_profiles(
-        url,
-        image_dir=img_dir,
-        output_file=output_file,
-        headless=False,
-        save_photo=False
-    )
+    try:
+        slug = extract_slug_from_url(url)
+        output_file = Path(f"data/raw/profiles_{slug}.csv")
+        img_dir = Path(f"data/raw/images/{slug}")
+        result = scrape_profiles(
+            url,
+            image_dir=img_dir,
+            output_file=output_file,
+            headless=False,
+            save_photo=False
+        )
+    except Exception as e:
+        print(f"❌ Skipping {url} after 3 failed attempts.")
